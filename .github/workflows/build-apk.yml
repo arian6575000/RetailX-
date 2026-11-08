@@ -1,0 +1,73 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/workflows/Extract.yml'
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      # Optional release signing: 4 secrets set hon to signed APK, warna debug keystore.
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        working-directory: retailx
+        run: npm install --legacy-peer-deps
+
+      - name: Typecheck
+        working-directory: retailx
+        run: npx tsc --noEmit
+
+      - name: Tests
+        working-directory: retailx
+        run: npm test
+
+      - name: Prepare release keystore (optional)
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Generate native Android project
+        working-directory: retailx
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build release APK
+        working-directory: retailx/android
+        run: ./gradlew assembleRelease --no-daemon -Dorg.gradle.jvmargs="-Xmx3g"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RetailX-apk
+          path: retailx/android/app/build/outputs/apk/release/*.apk
+
+      - name: Publish APK as a GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: RetailX APK #${{ github.run_number }}
+          files: retailx/android/app/build/outputs/apk/release/*.apk
