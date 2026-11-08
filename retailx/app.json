@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "RetailX",
+    "slug": "retailx",
+    "scheme": "retailx",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#020C3C"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.retailx.app"
+    },
+    "android": {
+      "package": "com.retailx.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0A6CFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock the app with Face ID"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "RetailX uses the camera only to scan product barcodes.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      "./plugins/withReleaseSigning.js"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

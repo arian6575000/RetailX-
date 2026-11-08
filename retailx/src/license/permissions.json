@@ -1,0 +1,143 @@
+{
+  "project": {
+    "name": "RetailX",
+    "code": "retailx-register",
+    "platform": "android_apk",
+    "icon": "shopping-cart",
+    "description": "RetailX: retail register / POS for Android (sales, inventory, customers, staff, reports).",
+    "current_version": "1.0.0",
+    "min_supported_version": "1.0.0"
+  },
+  "permission_schema": [
+    {
+      "module": "pos",
+      "label": "Register",
+      "icon": "shopping-cart",
+      "description": "Selling at the counter.",
+      "features": [
+        {
+          "key": "pos.billing",
+          "label": "Billing",
+          "description": "Create sales from the register",
+          "default": true
+        },
+        {
+          "key": "pos.discount",
+          "label": "Discounts",
+          "description": "Give a discount at checkout",
+          "default": true
+        },
+        {
+          "key": "pos.scan",
+          "label": "Barcode scanner",
+          "description": "Scan product barcodes with the camera",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "inventory",
+      "label": "Inventory",
+      "icon": "package",
+      "description": "Products and stock.",
+      "features": [
+        {
+          "key": "inventory.manage",
+          "label": "Manage products",
+          "description": "Add, edit and delete products (admin role)",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "customers",
+      "label": "Customers",
+      "icon": "users",
+      "description": "Customer records.",
+      "features": [
+        {
+          "key": "customers.manage",
+          "label": "Customers",
+          "description": "Customer list and attach to sales",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "history",
+      "label": "Sales history",
+      "icon": "receipt",
+      "description": "Past sales.",
+      "features": [
+        {
+          "key": "history.returns",
+          "label": "Refunds",
+          "description": "Refund a sale and restock items (admin role)",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "reports",
+      "label": "Reports",
+      "icon": "bar-chart",
+      "description": "Reports and expenses.",
+      "features": [
+        {
+          "key": "reports.view",
+          "label": "Reports",
+          "description": "Revenue, top products, categories",
+          "default": true
+        },
+        {
+          "key": "expenses.manage",
+          "label": "Expenses",
+          "description": "Log and review expenses (admin role)",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "team",
+      "label": "Team",
+      "icon": "user-check",
+      "description": "Staff accounts.",
+      "features": [
+        {
+          "key": "staff.manage",
+          "label": "Staff accounts",
+          "description": "Add cashiers/admins (limited by max users)",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "print",
+      "label": "Print",
+      "icon": "printer",
+      "description": "Receipts and exports.",
+      "features": [
+        {
+          "key": "print.receipts",
+          "label": "Print / share receipts",
+          "description": "Print or share receipts and reports as PDF/CSV",
+          "default": true
+        }
+      ]
+    },
+    {
+      "module": "backup",
+      "label": "Backup",
+      "icon": "cloud",
+      "description": "Backup and restore.",
+      "features": [
+        {
+          "key": "backup.export",
+          "label": "Backup & Restore",
+          "description": "Export and import backup files (password protected)",
+          "default": true
+        }
+      ]
+    }
+  ]
+}
