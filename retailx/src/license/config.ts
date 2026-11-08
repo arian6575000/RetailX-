@@ -2,6 +2,6 @@
 // PROJECT_CODE: same code as in the License Generator / Hub "Projects" list (must match permissions.json -> project.code).
 // PUBLIC_KEY_HEX: the Ed25519 PUBLIC key (64 hex chars) of this project. Never put a private key here.
 export const PROJECT_CODE = "retailx-register";
-export const PUBLIC_KEY_HEX = "";
+export const PUBLIC_KEY_HEX = "a471667979031ff1de92c8265162754f9c876f5f6c0cb6501785adeeefa67f9c";
 // =======================================
 export const KEY_CONFIGURED = /^[0-9a-fA-F]{64}$/.test(PUBLIC_KEY_HEX);
