@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { Badge, Button, Chips, Empty, IconButton, KV, ListItem, Muted, Row, Screen, Sheet, T } from '../../ui/kit';
+import { Avatar, Badge, Button, Chips, Empty, IconButton, KV, ListItem, Muted, Row, Screen, Sheet, T } from '../../ui/kit';
 import { useApp } from '../../ctx/AppContext';
 import { useSession } from '../../ctx/Session';
 import { useCan } from '../../license/LicenseGate';
@@ -56,7 +56,7 @@ export default function History() {
       {data && !data.sales.length ? <Empty icon="receipt-outline" title={t('noSales')} /> : (
         <FlatList data={data?.sales || []} keyExtractor={(s) => String(s.id)} onRefresh={reload} refreshing={false} contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item: s }) => (
-            <ListItem onPress={() => open(s)} title={`#${s.number}`} sub={fmtDateTime(s.createdAt)} sub2={s.staffId ? names.get(s.staffId) : undefined}
+            <ListItem card onPress={() => open(s)} left={<Avatar icon="receipt-outline" size={42} />} title={`#${s.number}`} sub={fmtDateTime(s.createdAt)} sub2={s.staffId ? names.get(s.staffId) : undefined}
               trail={<><T bold>{Fmt.money(s.total)}</T><Badge status={s.status === 'refunded' ? 'refunded' : 'completed'} label={s.status === 'refunded' ? t('refunded') : t(s.paymentMethod)} /></>} />
           )} />
       )}

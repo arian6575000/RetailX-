@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildPayload, generateKeyPair, signLicense, verifyLicense } from '../src/license/licenseCore';
+import { buildPayload, formatAppDeviceId, generateKeyPair, signLicense, verifyLicense } from '../src/license/licenseCore';
 
 const kp = generateKeyPair();
 const other = generateKeyPair();
@@ -37,4 +37,9 @@ assert.equal(verifyLicense(HUB_KEY, { publicKeyHex: HUB_PUB, machineId: '9107-7F
 assert.deepEqual(verifyLicense(HUB_KEY, { publicKeyHex: HUB_PUB, machineId: '1111-2222-3333-4444-5555', projectCode: 'darzihub', now: hubNow }), { ok: false, reason: 'machine' });
 assert.deepEqual(verifyLicense(HUB_KEY, { publicKeyHex: kp.publicKeyHex, machineId: '9107-7FE3-4C6C-0DD3-5901', now: hubNow }), { ok: false, reason: 'signature' });
 assert.equal(verifyLicense('RETAILX-LIC-' + HUB_KEY.slice(12), { publicKeyHex: HUB_PUB, machineId: '9107-7FE3-4C6C-0DD3-5901', now: hubNow }).ok, true);
+// app-specific device ID: prefix + 12 hex, so the same phone never shares an ID between apps
+assert.equal(formatAppDeviceId('RetailX', 'a1b2c3d4e5f60718'), 'RetailX-A1B2-C3D4-E5F6');
+assert.notEqual(formatAppDeviceId('RetailX', 'a1b2c3d4e5f6'), formatAppDeviceId('DarziHub', 'a1b2c3d4e5f6'));
+assert.throws(() => formatAppDeviceId('Retail-X', 'a1b2c3d4e5f6'));
+assert.throws(() => formatAppDeviceId('RetailX', 'a1b2'));
 console.log('license tests passed');

@@ -3,7 +3,7 @@ import { registerDict } from './i18n';
 
 registerDict({
   // navigation
-  navRegister: ['Register'], navProducts: ['Products'], navCustomers: ['Customers'], navHistory: ['History'], navMore: ['More'],
+  navRegister: ['Sell'], navProducts: ['Products'], navCustomers: ['Customers'], navHistory: ['History'], navMore: ['More'],
   // setup
   setupTitle: ['Set up your store'], setupSub: ['Create the owner account to get started'], storeName: ['Store name'], ownerPin: ['Owner PIN (4 digits)'],
   confirmOwnerPin: ['Confirm PIN'], loadDemo: ['Load 100 demo products'], startSelling: ['Start selling'], fillAll: ['Please fill in all required fields'],
@@ -45,4 +45,12 @@ registerDict({
   moreTitle: ['More'], storeInfo: ['Store details'], taxRate: ['Tax rate (%)'], lowStockAt: ['Low stock alert at'], receiptFormat: ['Receipt size'],
   thermal80: ['Thermal 80 mm'], thermal58: ['Thermal 58 mm'], a4: ['A4'], myPin: ['Change my PIN'], oldPin: ['Current PIN'], adminOnly: ['Available to admins only'],
   loggedInAs: ['Signed in as'], lowStockAlert: ['Low stock items'],
+  // home / design refresh
+  navHome: ['Home'], hello: ['Hello'], storeFallback: ['Main store'], todaySales: ["Today's sales"], thisMonth: ['This month'], totalSales: ['Total sales'],
+  orders: ['Orders'], netProfit: ['Net profit'], quickActions: ['Quick actions'], sellAction: ['Sale'], vsYesterday: ['vs yesterday'], lowStockItems: ['Low stock items'],
+  viewCart: ['View cart'], proceedCheckout: ['Proceed to checkout'], paymentMethod: ['Payment method'], orderSummary: ['Order summary'], clearCartMsg: ['Remove everything from the cart?'],
+  continueSelling: ['Continue selling'], seeAll: ['View all'], thisWeek: ['This week'], scanBarcode: ['Scan a barcode…'], securityAccess: ['Security & access'],
+  createBackup: ['Create backup'], restoreBackup: ['Restore backup'], backupYourData: ['Back up your data'], backupTagline: ['Keep your business data safe with an encrypted backup.'],
+  staffRoleActive: ['Active'], tapToSetup: ['Configure your store details to start using RetailX.'], lockedTitle: ['Enter PIN'], settingsTitle: ['Settings'],
+  tagline: ['Smart POS • Better Business'], itemsInCart: ['items in cart'], sellScreenTitle: ['Products'],
 });

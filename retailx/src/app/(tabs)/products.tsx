@@ -52,14 +52,14 @@ export default function Products() {
 
   if (!can('product.edit')) return <Screen title={t('navProducts')}><Muted center style={{ marginTop: 40 }}>{t('adminOnly')}</Muted></Screen>;
   return (
-    <Screen title={t('productsTitle')} scroll={false} right={<IconButton icon="add" onPress={() => open()} />}>
+    <Screen back title={t('productsTitle')} scroll={false} right={<IconButton solid icon="add" onPress={() => open()} />}>
       <SearchBar value={q} onChangeText={setQ} placeholder={t('searchProducts')} />
       <View style={{ height: 10 }} />
       <Chips value={filter} onChange={setFilter} items={[['all', t('all')], ['low', t('low')], ['out', t('out')]]} />
       {products && !products.length ? <Empty icon="cube-outline" title={t('noProducts')} text={t('noProductsHint')} action={<Button label={t('addProduct')} onPress={() => open()} />} /> : (
         <FlatList data={list} keyExtractor={(p) => String(p.id)} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item: p }) => (
-            <ListItem onPress={() => open(p)} title={p.name} sub={`${p.category}${p.sku ? ` · ${p.sku}` : ''}`}
+            <ListItem card onPress={() => open(p)} title={p.name} sub={`${p.category}${p.sku ? ` · ${p.sku}` : ''}`}
               trail={<><T bold>{Fmt.money(p.price)}</T>{p.stock == null ? <Muted>{t('unlimited')}</Muted> : p.stock <= 0 ? <Badge status="out" label={t('outOfStockLabel')} /> : <Badge status={p.stock <= settings.lowStockThreshold ? 'low' : 'completed'} label={`${p.stock} ${p.unit}`} />}</>} />
           )} />
       )}

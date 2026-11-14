@@ -1,73 +1,81 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import { Button, Chips, Empty, IconButton, ListItem, Muted, Row, Screen, SearchBar, T, Badge } from '../../ui/kit';
-import { Scanner } from '../../ui/Scanner';
-import { Checkout } from '../../ui/Checkout';
+import React from 'react';
+import { View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { ActionTile, Card, GradientCard, IconButton, Muted, Row, Screen, SectionLabel, StatCard, T, Grid } from '../../ui/kit';
 import { useApp } from '../../ctx/AppContext';
-import { useCart } from '../../ctx/Cart';
+import { useSession } from '../../ctx/Session';
 import { useCan } from '../../license/LicenseGate';
 import { Repo } from '../../db/repo';
-import type { Product } from '../../db/types';
 import { useLoad } from '../../lib/hooks';
+import { daysAgoMs, endOfDayMs, startOfDayMs } from '../../lib/dates';
 import { Fmt } from '../../lib/format';
 import { C } from '../../lib/theme';
 
-export default function Register() {
-  const { t, settings, toast } = useApp();
-  const can = useCan();
-  const cart = useCart();
-  const [products, reload] = useLoad(() => Repo.listProducts(), []);
-  const [q, setQ] = useState('');
-  const [cat, setCat] = useState('__all');
-  const [scan, setScan] = useState(false);
-  const [pay, setPay] = useState(false);
+const compact = (n: number) => (Math.abs(n) >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : Math.abs(n) >= 1e4 ? `${Math.round(n / 1e3)}K` : String(Math.round(n)));
 
-  const cats = useMemo(() => Array.from(new Set((products || []).map((p) => p.category))).sort(), [products]);
-  const list = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return (products || []).filter((p) => (cat === '__all' || p.category === cat) && (!s || `${p.name} ${p.sku} ${p.barcode}`.toLowerCase().includes(s)));
-  }, [products, q, cat]);
+/** Home dashboard: today's sales, month totals, quick actions. */
+export default function Home() {
+  const { t, settings } = useApp();
+  const { staff, can, logout } = useSession();
+  const lic = useCan();
+  const full = can('report.view');
+  const [d, reload] = useLoad(async () => {
+    const now = Date.now(), to = endOfDayMs(now), t0 = startOfDayMs(now);
+    const mFrom = new Date(new Date(now).getFullYear(), new Date(now).getMonth(), 1).getTime();
+    const sid = full ? undefined : staff?.id ?? -1;
+    const [today, yest, month, series, exp, customers, products] = await Promise.all([
+      Repo.statsForRange(t0, to, sid), Repo.statsForRange(daysAgoMs(1, now), t0 - 1, sid), Repo.statsForRange(mFrom, to, sid),
+      Repo.dailySeries(7), full ? Repo.expensesTotal(mFrom, to) : Promise.resolve(0), lic('customers.manage') ? Repo.listCustomers() : Promise.resolve([]),
+      can('product.edit') ? Repo.listProducts() : Promise.resolve([]),
+    ]);
+    const low = products.filter((p) => p.stock != null && p.stock <= settings.lowStockThreshold).length;
+    return { today, yest, month, series, exp, customers: customers.length, low };
+  }, [full, staff?.id, settings.lowStockThreshold]);
 
-  const addProduct = (p: Product) => {
-    const inCart = cart.lines.find((l) => l.productId === p.id)?.qty || 0;
-    if (p.stock != null && inCart + 1 > p.stock) { toast(`${t('err_outOfStock')}: ${p.name}`, 'error'); return; }
-    cart.add(p);
-  };
-  const onCode = async (code: string) => {
-    setScan(false);
-    const p = await Repo.findByBarcode(code);
-    if (p) { addProduct(p); toast(p.name, 'success'); } else toast(`${t('noProductForCode')} (${code})`, 'error');
-  };
-
-  if (!can('pos.billing')) return <Screen title={t('navRegister')}><Muted center style={{ marginTop: 40 }}>{t('featureLocked')}</Muted></Screen>;
-  return (
-    <Screen title={t('navRegister')} scroll={false} right={can('pos.scan') ? <IconButton icon="barcode-outline" onPress={() => setScan(true)} /> : undefined}>
-      <SearchBar value={q} onChangeText={setQ} placeholder={t("searchProducts")} />
-      <View style={{ height: 10 }} />
-      <Chips value={cat} onChange={setCat} items={[['__all', t('all')], ...cats.map((c) => [c, c] as [string, string])]} />
-      {products && !products.length ? <Empty icon="cube-outline" title={t('noProducts')} text={t('noProductsHint')} /> : (
-        <FlatList
-          data={list} keyExtractor={(p) => String(p.id)} keyboardShouldPersistTaps="handled"
-          onRefresh={reload} refreshing={false}
-          contentContainerStyle={{ paddingBottom: cart.count ? 90 : 20 }}
-          ListEmptyComponent={<Muted center style={{ marginTop: 30 }}>{t('noMatches')}</Muted>}
-          renderItem={({ item: p }) => {
-            const out = p.stock != null && p.stock <= 0;
-            return (
-              <ListItem
-                onPress={out ? undefined : () => addProduct(p)} title={p.name} sub={p.category}
-                trail={<><T bold>{Fmt.money(p.price)}</T>{out ? <Badge status="out" label={t('outOfStockLabel')} /> : p.stock != null && p.stock <= settings.lowStockThreshold ? <Badge status="low" label={`${p.stock} ${t('inStock')}`} /> : null}</>}
-              />
-            );
-          }} />
-      )}
-      {cart.count > 0 ? (
-        <View style={{ position: 'absolute', left: 16, right: 16, bottom: 12 }}>
-          <Button icon="cart" label={`${t('checkout')} · ${cart.count} ${t('items')} · ${Fmt.money(cart.subtotal)}`} onPress={() => setPay(true)} />
+  const delta = d && d.yest.revenue > 0 ? Math.round(((d.today.revenue - d.yest.revenue) / d.yest.revenue) * 100) : undefined;
+  const heroContent = (
+    <Row gap={12} style={{ justifyContent: 'space-between' }}>
+      <Row gap={12} style={{ flex: 1 }}>
+        <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="storefront" size={22} color={C.primary} /></View>
+        <View style={{ flex: 1 }}>
+          <T bold size={18} color="#fff" numberOfLines={1}>{`${t('hello')}, ${staff?.name ?? ''}`}</T>
+          <T size={13} color="rgba(255,255,255,0.8)" numberOfLines={1}>{settings.businessName || t('storeFallback')}</T>
         </View>
+      </Row>
+      <IconButton onDark icon="lock-closed-outline" onPress={logout} />
+    </Row>
+  );
+
+  return (
+    <Screen heroContent={heroContent} onRefresh={reload} padBottom={40}>
+      <GradientCard
+        style={{ marginTop: 2 }} label={t('todaySales')} value={Fmt.money(d?.today.revenue ?? 0)}
+        delta={delta != null ? `${delta >= 0 ? '+' : ''}${delta}% ${t('vsYesterday')}` : undefined} bars={d?.series.map((s) => s.revenue)} />
+      {full ? (
+        <Grid>
+          <StatCard icon="cash" tone="blue" small value={`${Fmt.currency} ${compact(d?.month.revenue ?? 0)}`} label={`${t('totalSales')} · ${t('thisMonth')}`} />
+          <StatCard icon="trending-up" tone="green" small value={`${Fmt.currency} ${compact((d?.month.revenue ?? 0) - (d?.exp ?? 0))}`} label={`${t('netProfit')} · ${t('thisMonth')}`} />
+          <StatCard icon="receipt" tone="violet" small value={d?.month.count ?? 0} label={`${t('orders')} · ${t('thisMonth')}`} />
+          {lic('customers.manage') ? <StatCard icon="people" tone="orange" small value={d?.customers ?? 0} label={t('navCustomers')} /> : null}
+        </Grid>
+      ) : (
+        <Grid><StatCard icon="receipt" tone="violet" small value={d?.today.count ?? 0} label={`${t('orders')} · ${t('today')}`} /><StatCard icon="cash" tone="green" small value={Fmt.money(d?.today.average ?? 0)} label={t('avgSale')} /></Grid>
+      )}
+      {d && d.low > 0 ? (
+        <Card onPress={() => router.push('/products' as any)} style={{ marginTop: 6 }}>
+          <Row gap={12}><Ionicons name="alert-circle" size={24} color={C.warning} /><T bold style={{ flex: 1 }}>{t('lowStockItems')}</T><T bold color={C.warning}>{String(d.low)}</T><Ionicons name="chevron-forward" size={18} color={C.faint} /></Row>
+        </Card>
       ) : null}
-      <Scanner visible={scan} onClose={() => setScan(false)} onCode={onCode} />
-      <Checkout visible={pay} onClose={() => setPay(false)} onSold={reload} />
+      <SectionLabel>{t('quickActions')}</SectionLabel>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        {can('sell') ? <ActionTile icon="cart" label={t('sellAction')} onPress={() => router.push('/sell' as any)} /> : null}
+        {can('product.edit') ? <ActionTile icon="cube" tone="orange" label={t('navProducts')} onPress={() => router.push('/products' as any)} /> : null}
+        {lic('customers.manage') ? <ActionTile icon="people" tone="green" label={t('navCustomers')} onPress={() => router.push('/customers' as any)} /> : null}
+        {full ? <ActionTile icon="bar-chart" tone="violet" label={t('reportsTitle')} onPress={() => router.push('/reports' as any)} /> : null}
+        {can('expense.manage') ? <ActionTile icon="wallet" tone="red" label={t('expensesTitle')} onPress={() => router.push('/expenses' as any)} /> : null}
+      </View>
+      <Muted center style={{ marginTop: 18 }}>{t('tagline')}</Muted>
     </Screen>
   );
 }

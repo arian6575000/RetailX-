@@ -11,7 +11,8 @@ import { Repo } from '../../db/repo';
 import type { Settings } from '../../db/types';
 import { APP } from '../../lib/brand';
 import { errKey } from '../../lib/errors';
-import { C } from '../../lib/theme';
+import { C, TONES } from '../../lib/theme';
+import { useCan } from '../../license/LicenseGate';
 
 export default function More() {
   const { t, settings, saveSettings, toast } = useApp();
@@ -31,18 +32,32 @@ export default function More() {
     if (a !== b) { toast(t('pinMismatch'), 'error'); return; }
     try { await Repo.updateStaff(staff.id, { pin: a }); toast(t('pinSet'), 'success'); } catch (e) { toast(t(errKey(e).key), 'error'); }
   };
-  const link = (icon: React.ComponentProps<typeof Ionicons>['name'], title: string, to: string, show: boolean) => show ? (
-    <Card key={to} style={{ marginBottom: 10 }} onPress={() => router.push(to as any)}>
-      <Row gap={12}><Ionicons name={icon} size={24} color={C.primary} /><T bold style={{ flex: 1 }}>{title}</T><Ionicons name="chevron-forward" size={18} color={C.faint} /></Row>
+  const lic = useCan();
+  const tones = ['blue', 'orange', 'green', 'red', 'violet'] as const;
+  type Row = { icon: React.ComponentProps<typeof Ionicons>['name']; title: string; to: string; show: boolean };
+  const rows = ([
+    { icon: 'cube', title: t('navProducts'), to: '/products', show: can('product.edit') },
+    { icon: 'people', title: t('navCustomers'), to: '/customers', show: lic('customers.manage') },
+    { icon: 'wallet', title: t('expensesTitle'), to: '/expenses', show: can('expense.manage') },
+    { icon: 'people-circle', title: t('staffTitle'), to: '/staff', show: can('staff.manage') },
+    { icon: 'cloud-upload', title: t('backupRestore'), to: '/backup', show: can('backup') },
+  ] as Row[]).filter((r) => r.show);
+  const menu = rows.length ? (
+    <Card flush style={{ paddingHorizontal: 12 }}>
+      {rows.map((r, i) => {
+        const tn = TONES[tones[i % tones.length]];
+        return (
+          <ListItem key={r.to} last={i === rows.length - 1} title={r.title} onPress={() => router.push(r.to as any)}
+            left={<View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: tn.bg, alignItems: 'center', justifyContent: 'center' }}><Ionicons name={r.icon} size={20} color={tn.fg} /></View>}
+            trail={<Ionicons name="chevron-forward" size={18} color={C.faint} />} />
+        );
+      })}
     </Card>
   ) : null;
 
   return (
     <Screen title={t('moreTitle')} subtitle={staff ? `${t('loggedInAs')} ${staff.name}` : undefined} padBottom={60}>
-      {link('bar-chart', t('reportsTitle'), '/reports', can('report.view'))}
-      {link('wallet', t('expensesTitle'), '/expenses', can('expense.manage'))}
-      {link('people-circle', t('staffTitle'), '/staff', can('staff.manage'))}
-      {link('cloud-upload', t('backupRestore'), '/backup', can('backup'))}
+      {menu}
 
       {can('settings.edit') ? <>
         <SectionLabel>{t('storeInfo')}</SectionLabel>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { Button, Card, CheckRow, Credit, Field, Muted, Screen, T, Avatar } from './kit';
+import { Ionicons } from '@expo/vector-icons';
+import { Button, Card, CheckRow, Credit, Field, Muted, Screen, T } from './kit';
+import { C } from '../lib/theme';
 import { useApp } from '../ctx/AppContext';
 import { Repo } from '../db/repo';
 import { DEMO_PRODUCTS } from '../data/demoProducts';
@@ -30,10 +32,12 @@ export default function Setup({ onDone }: { onDone: () => void | Promise<void> }
     } catch (e) { const k = errKey(e); toast(t(k.key), 'error'); setBusy(false); }
   };
   return (
-    <Screen padBottom={60}>
+    <Screen bare padBottom={60}>
       <View style={{ alignItems: 'center', marginVertical: 18 }}>
-        <Avatar icon="storefront" size={64} />
-        <T bold size={24} style={{ marginTop: 12 }}>{t('setupTitle')}</T>
+        <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: C.tint, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="storefront" size={40} color="#fff" /></View>
+        </View>
+        <T bold size={24} style={{ marginTop: 14 }}>{t('setupTitle')}</T>
         <Muted center>{t('setupSub')}</Muted>
       </View>
       <Card>

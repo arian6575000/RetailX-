@@ -27,13 +27,12 @@ export default function Customers() {
     await Repo.deleteCustomer(f.id); setF(null); reload();
   };
   return (
-    <Screen title={t('customersTitle')} scroll={false} right={<IconButton icon="person-add" onPress={() => open()} />}>
+    <Screen back title={t('customersTitle')} scroll={false} right={<IconButton solid icon="add" onPress={() => open()} />}>
       <SearchBar value={q} onChangeText={setQ} placeholder={t('search')} />
-      <Muted style={{ height: 10 }}>{''}</Muted>
-      {list && !list.length ? <Empty icon="people-outline" title={t('noCustomers')} action={<Button label={t('addCustomer')} onPress={() => open()} />} /> : (
+            {list && !list.length ? <Empty icon="people-outline" title={t('noCustomers')} action={<Button label={t('addCustomer')} onPress={() => open()} />} /> : (
         <FlatList data={shown} keyExtractor={(c) => String(c.id)} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 30 }}
           renderItem={({ item: c }) => (
-            <ListItem onPress={() => open(c)} left={<Avatar text={Fmt.initials(c.name)} />} title={c.name} sub={c.phone || undefined}
+            <ListItem card onPress={() => open(c)} left={<Avatar text={Fmt.initials(c.name)} />} title={c.name} sub={c.phone || undefined}
               trail={<><T bold>{Fmt.money(c.totalSpent)}</T><Muted>{`${c.visits} ${t('visits')}`}</Muted></>} />
           )} />
       )}
